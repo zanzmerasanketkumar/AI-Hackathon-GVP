@@ -1,0 +1,606 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Management - Smart Attendance Tracker{% endblock %}
+
+{% block content %}
+<style>
+.attendance-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 15px;
+}
+
+.attendance-card {
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.attendance-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.attendance-card .card-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+    color: white;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.attendance-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.attendance-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.attendance-select.present {
+    background-color: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.attendance-select.absent {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.student-row {
+    transition: background-color 0.3s ease;
+}
+
+.student-row:hover {
+    background-color: #f8f9fa;
+}
+
+.student-id {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-custom {
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.summary-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    min-width: 120px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.batch-selector {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.batch-info {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #2196f3;
+}
+
+.batch-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.batch-btn {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 2px solid #0d6efd;
+}
+
+.batch-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.batch-btn.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.attendance-profile {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #6c757d;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.profile-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.profile-info h6 {
+    margin: 0;
+    color: #495057;
+    font-weight: 600;
+}
+
+.profile-info small {
+    color: #6c757d;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.85rem;
+}
+
+.profile-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-stat strong {
+    color: #0d6efd;
+    font-size: 1.1rem;
+}
+
+.attendance-checkbox:checked + .form-check-label {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.attendance-checkbox:not(:checked) + .form-check-label {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.form-check {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.form-check.present {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 1px solid #28a745;
+}
+
+.form-check.absent {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border: 1px solid #dc3545;
+}
+
+.form-check-input:checked + .form-check-label i {
+    color: #28a745;
+}
+
+.form-check-input:not(:checked) + .form-check-label i {
+    color: #dc3545;
+}
+
+@media (max-width: 768px) {
+    .attendance-header {
+        padding: 1.5rem 0;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+</style>
+
+<!-- Attendance Header -->
+<div class="attendance-header">
+    <div class="container text-center">
+        <h1 class="mb-3">
+            <i class="fas fa-calendar-check me-2"></i>
+            Attendance Management
+        </h1>
+        <p class="mb-0">Mark daily attendance for students by batch efficiently</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="attendance-card">
+                <div class="card-header">
+                    <i class="fas fa-user-check me-2"></i>Mark Attendance by Batch
+                </div>
+                <div class="card-body">
+                    <form method="post" id="attendanceForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="date" class="form-label fw-bold">
+                                <i class="fas fa-calendar me-2"></i>Select Date
+                            </label>
+                            <input type="date" name="date" id="date" class="form-control attendance-select" required>
+                            <div class="form-text">Select the date for which you want to mark attendance.</div>
+                        </div>
+                        
+                        <!-- Batch Selector -->
+                        <div class="batch-selector">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-users me-2"></i>Select Batch
+                            </label>
+                            <div class="d-flex flex-wrap gap-2" id="batchButtons">
+                                <button type="button" class="btn btn-outline-primary" onclick="loadBatchStudents('', 'All Students')">
+                                    <i class="fas fa-users me-1"></i>All Students
+                                </button>
+                                {% for batch_info in batches %}
+                                    <button type="button" class="btn btn-outline-primary" 
+                                            onclick="loadBatchStudents('{{ batch_info.code }}', '{{ batch_info.name }}')"
+                                            data-year="{{ batch_info.year }}" 
+                                            data-program="{{ batch_info.program }}">
+                                        {{ batch_info.name }} ({{ batch_info.count }})
+                                    </button>
+                                {% endfor %}
+                            </div>
+                            <div class="form-text">Click on a batch to filter students. All students will be marked as Present by default.</div>
+                        </div>
+                        
+                        {% if students %}
+                            <!-- Batch Information -->
+                            <div id="batchInfo" class="batch-info" style="display: none;">
+                                <h6 class="mb-2">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <span id="batchTitle">Batch Information</span>
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong>Program:</strong> <span id="batchProgram">-</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Year:</strong> <span id="batchYear">-</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Students:</strong> <span id="batchStudentCount">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Attendance Summary -->
+                            <div class="summary-stats" id="attendanceSummary">
+                                <div class="stat-item">
+                                    <div class="stat-number text-info" id="totalStudents">{{ students|length }}</div>
+                                    <div class="stat-label">Total Students</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number text-success" id="presentCount">0</div>
+                                    <div class="stat-label">Present</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number text-danger" id="absentCount">0</div>
+                                    <div class="stat-label">Absent</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number text-warning" id="pendingCount">{{ students|length }}</div>
+                                    <div class="stat-label">Pending</div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Student Profile</th>
+                                            <th>Student ID</th>
+                                            <th>Program</th>
+                                            <th>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="me-2">Quick Actions:</span>
+                                                    <button type="button" class="btn btn-sm btn-success me-1" onclick="markAllPresent()">
+                                                        <i class="fas fa-check me-1"></i>All Present
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-danger me-1" onclick="markAllAbsent()">
+                                                        <i class="fas fa-times me-1"></i>All Absent
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-secondary" onclick="clearAll()">
+                                                        <i class="fas fa-undo me-1"></i>Clear All
+                                                    </button>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="studentTableBody">
+                                        {% for student in students %}
+                                            <tr class="student-row" data-program="{{ student.program }}" data-year="{{ student.admission_year }}">
+                                                <td>
+                                                    <div class="attendance-profile">
+                                                        <div class="profile-header">
+                                                            <div class="profile-avatar">
+                                                                {{ student.full_name|first|upper }}
+                                                            </div>
+                                                            <div class="profile-info">
+                                                                <h6>{{ student.full_name }}</h6>
+                                                                <small>{{ student.get_gender_display }} • {{ student.date_of_birth|date:"Y" }}</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="profile-stats">
+                                                            <div class="profile-stat">
+                                                                <strong>{{ student.phone_number }}</strong>
+                                                                <small>Phone</small>
+                                                            </div>
+                                                            <div class="profile-stat">
+                                                                <strong>{{ student.get_semester_display }}</strong>
+                                                                <small>Semester</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td><span class="student-id">{{ student.student_id }}</span></td>
+                                                <td>{{ student.get_program_display }}</td>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" 
+                                                               class="form-check-input attendance-checkbox" 
+                                                               name="attendance_{{ student.pk }}" 
+                                                               id="attendance_{{ student.pk }}"
+                                                               value="present"
+                                                               onchange="updateAttendanceSummary()">
+                                                        <label class="form-check-label" for="attendance_{{ student.pk }}">
+                                                            <i class="fas fa-check-circle text-success"></i> Present
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="action-buttons mt-4">
+                                <button type="button" class="btn btn-outline-primary btn-custom" onclick="markAllPresent()">
+                                    <i class="fas fa-check-double me-2"></i>Mark All Present
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-custom" onclick="markAllAbsent()">
+                                    <i class="fas fa-times me-2"></i>Mark All Absent
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-custom" onclick="clearAll()">
+                                    <i class="fas fa-undo me-2"></i>Clear All
+                                </button>
+                                <button type="submit" class="btn btn-success btn-custom btn-lg">
+                                    <i class="fas fa-save me-2"></i>Save Attendance
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                                <h4 class="text-muted">No Students Found</h4>
+                                <p class="text-muted">Add students to start marking attendance.</p>
+                                <a href="{% url 'student_create' %}" class="btn btn-primary btn-custom">
+                                    <i class="fas fa-user-plus me-2"></i>Add First Student
+                                </a>
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateAttendanceSummary() {
+    const visibleRows = document.querySelectorAll('#studentTableBody .student-row:not([style*="display: none"])');
+    const checkboxes = Array.from(visibleRows).map(row => row.querySelector('.attendance-checkbox'));
+    let present = 0;
+    let absent = 0;
+    let pending = 0;
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            present++;
+            checkbox.parentElement.classList.add('present');
+            checkbox.parentElement.classList.remove('absent');
+        } else {
+            absent++;
+            checkbox.parentElement.classList.add('absent');
+            checkbox.parentElement.classList.remove('present');
+        }
+    });
+    
+    document.getElementById('totalStudents').textContent = visibleRows.length;
+    document.getElementById('presentCount').textContent = present;
+    document.getElementById('absentCount').textContent = absent;
+    document.getElementById('pendingCount').textContent = 0;
+}
+
+function markAllPresent() {
+    const visibleRows = document.querySelectorAll('#studentTableBody .student-row:not([style*="display: none"])');
+    const checkboxes = Array.from(visibleRows).map(row => row.querySelector('.attendance-checkbox'));
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateAttendanceSummary();
+}
+
+function markAllAbsent() {
+    const visibleRows = document.querySelectorAll('#studentTableBody .student-row:not([style*="display: none"])');
+    const checkboxes = Array.from(visibleRows).map(row => row.querySelector('.attendance-checkbox'));
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateAttendanceSummary();
+}
+
+function clearAll() {
+    const visibleRows = document.querySelectorAll('#studentTableBody .student-row:not([style*="display: none"])');
+    const checkboxes = Array.from(visibleRows).map(row => row.querySelector('.attendance-checkbox'));
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateAttendanceSummary();
+}
+
+function loadBatchStudents(batchCode, batchName) {
+    // Update button states
+    const buttons = document.querySelectorAll('#batchButtons .btn');
+    buttons.forEach(btn => {
+        btn.classList.remove('btn-primary', 'active');
+        btn.classList.add('btn-outline-primary');
+    });
+    
+    // Highlight active button
+    event.target.classList.remove('btn-outline-primary');
+    event.target.classList.add('btn-primary', 'active');
+    
+    const allRows = document.querySelectorAll('#studentTableBody .student-row');
+    let visibleCount = 0;
+    let batchYear = '';
+    let batchProgram = '';
+    
+    if (batchCode === '') {
+        // Show all students
+        allRows.forEach(row => {
+            row.style.display = '';
+        });
+        document.getElementById('batchInfo').style.display = 'none';
+    } else {
+        // Get batch info from clicked button
+        batchYear = event.target.getAttribute('data-year');
+        batchProgram = event.target.getAttribute('data-program');
+        
+        // Filter students by batch
+        allRows.forEach(row => {
+            const rowProgram = row.getAttribute('data-program');
+            const rowYear = row.getAttribute('data-year');
+            
+            if (rowProgram === batchProgram && rowYear === batchYear) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Update batch info
+        document.getElementById('batchInfo').style.display = 'block';
+        document.getElementById('batchTitle').textContent = batchName;
+        document.getElementById('batchProgram').textContent = batchProgram;
+        document.getElementById('batchYear').textContent = batchYear;
+        document.getElementById('batchStudentCount').textContent = visibleCount;
+        
+        // Auto-mark all visible students as present
+        setTimeout(() => {
+            markAllPresent();
+        }, 100);
+    }
+    
+    updateAttendanceSummary();
+}
+
+// Set today's date as default
+document.getElementById('date').valueAsDate = new Date();
+
+// Initialize summary on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateAttendanceSummary();
+});
+
+// Add form validation
+document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+    const visibleRows = document.querySelectorAll('#studentTableBody .student-row:not([style*="display: none"])');
+    const selects = Array.from(visibleRows).map(row => row.querySelector('.attendance-select'));
+    let markedCount = 0;
+    
+    selects.forEach(select => {
+        if (select.value !== '') {
+            markedCount++;
+        }
+    });
+    
+    if (markedCount === 0) {
+        e.preventDefault();
+        alert('Please mark attendance for at least one student before saving.');
+    } else {
+        const pending = selects.length - markedCount;
+        if (pending > 0) {
+            const confirm = window.confirm(`You have ${pending} student(s) with pending attendance. Are you sure you want to save?`);
+            if (!confirm) {
+                e.preventDefault();
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
